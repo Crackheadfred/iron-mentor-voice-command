@@ -1,0 +1,12 @@
+{
+  "name": "William",
+  "language": "fr",
+  "gender": "male",
+  "created": "2025-01-11",
+  "description": "Voix masculine française pour J.A.R.V.I.S.",
+  "tortoise_settings": {
+    "preset": "fast",
+    "voice_samples": ["william_sample1.wav", "william_sample2.wav"],
+    "language_code": "fr"
+  }
+}
