@@ -86,10 +86,10 @@ echo [7/10] Installation modules de base...
 pip install requests openai psutil pyttsx3 SpeechRecognition --quiet
 pip install pytesseract Pillow pyautogui opencv-python numpy --quiet
 
-:: Installation TTS
-echo [8/10] Installation TTS...
-pip install TTS --quiet
-pip install accelerate transformers --quiet
+:: Installation TTS (optionnel)
+echo [8/10] Installation TTS (peut echouer)...
+pip install TTS --quiet || echo TTS echoue - Windows TTS sera utilise
+pip install accelerate transformers --quiet || echo Modules optionnels
 
 :: Installation modules audio
 echo [9/10] Installation modules audio...
@@ -119,9 +119,9 @@ echo         "model": "gpt-4.1-2025-04-14" >> temp_config.py
 echo     }, >> temp_config.py
 echo     "voice": { >> temp_config.py
 echo         "william_voice_path": "voices/william/", >> temp_config.py
-echo         "tts_engine": "tortoise", >> temp_config.py
+echo         "tts_engine": "windows", >> temp_config.py
 echo         "language": "fr", >> temp_config.py
-echo         "fallback_to_windows": False >> temp_config.py
+echo         "fallback_to_windows": True >> temp_config.py
 echo     }, >> temp_config.py
 echo     "screen": { >> temp_config.py
 echo         "ocr_enabled": True, >> temp_config.py
@@ -158,9 +158,13 @@ echo ========================================
 echo INSTALLATION TERMINEE!
 echo ========================================
 echo.
+echo Configuration: Windows TTS utilise (plus stable)
+echo Si TTS a echoue: pas de probleme, Windows TTS fonctionne
+echo.
 echo ETAPES SUIVANTES:
 echo 1. Installez Ollama: https://ollama.ai
 echo 2. Commande: ollama pull mistral-small3.2:24b
+echo 3. Lancez option 2 pour demarrer JARVIS
 echo.
 pause
 goto menu
@@ -190,13 +194,23 @@ if not exist "jarvis_env\Scripts\activate.bat" (
 
 call jarvis_env\Scripts\activate.bat
 python -c "
-modules = ['requests', 'openai', 'torch', 'pyttsx3', 'speech_recognition']
+modules = ['requests', 'openai', 'torch', 'pyttsx3', 'speech_recognition', 'cv2', 'numpy']
+success = 0
 for module in modules:
     try:
-        __import__(module)
+        if module == 'cv2':
+            import cv2
+        else:
+            __import__(module)
         print('OK:', module)
+        success += 1
     except:
-        print('ERREUR:', module)
+        print('MANQUANT:', module)
+print('Resultat:', success, '/', len(modules), 'modules OK')
+if success >= 5:
+    print('JARVIS peut fonctionner!')
+else:
+    print('Installation incomplete')
 "
 pause
 goto menu
@@ -211,7 +225,8 @@ if not exist "jarvis_env\Scripts\activate.bat" (
 )
 
 call jarvis_env\Scripts\activate.bat
-pip install --upgrade torch requests openai pyttsx3
+pip install --upgrade torch requests openai pyttsx3 SpeechRecognition
+pip install --upgrade numpy opencv-python
 echo Mise a jour terminee
 pause
 goto menu
