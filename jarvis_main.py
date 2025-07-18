@@ -250,11 +250,21 @@ class JARVIS:
                 if command:
                     self.process_command(command)
                 
-                # Écoute clavier (non-bloquante)
-                if sys.stdin in select.select([sys.stdin], [], [], 0.1)[0]:
-                    keyboard_input = input().strip()
-                    if keyboard_input:
-                        self.process_command(keyboard_input)
+                # Écoute clavier (Windows compatible)
+                try:
+                    if hasattr(sys, '_getframe'):  # Windows
+                        import msvcrt
+                        if msvcrt.kbhit():
+                            keyboard_input = input().strip()
+                            if keyboard_input:
+                                self.process_command(keyboard_input)
+                    else:  # Linux/Mac
+                        if sys.stdin in select.select([sys.stdin], [], [], 0.1)[0]:
+                            keyboard_input = input().strip()
+                            if keyboard_input:
+                                self.process_command(keyboard_input)
+                except:
+                    pass  # Ignorer les erreurs de clavier
                 
                 time.sleep(0.1)
                 

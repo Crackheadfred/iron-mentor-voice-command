@@ -157,5 +157,11 @@ echo 2. Si Tesseract manque: https://github.com/UB-Mannheim/tesseract/wiki
 echo 3. LANCER J.A.R.V.I.S.: START_JARVIS.bat
 echo 4. DIAGNOSTIC: DIAGNOSTIC_JARVIS.bat
 echo.
-echo L'installation est terminee. Vous pouvez fermer cette fenetre.
+echo L'installation est terminee.
+echo.
+echo IMPORTANT: Pour eviter les erreurs, installez aussi:
+echo - TorToise TTS: pip install TTS
+echo - Modeles vocaux francais
+echo.
+echo Appuyez sur une touche pour continuer...
 pause
