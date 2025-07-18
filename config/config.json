@@ -9,7 +9,8 @@
   },
   "voice": {
     "william_voice_path": "voices/william/",
-    "tts_engine": "tortoise"
+    "tts_engine": "windows",
+    "language": "fr"
   },
   "screen": {
     "ocr_enabled": true,

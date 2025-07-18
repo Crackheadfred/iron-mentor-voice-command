@@ -7,11 +7,11 @@ echo.
 :: Activer l'environnement virtuel
 call jarvis_env\Scripts\activate.bat
 
-echo Installation de TorToise TTS...
-pip install TTS
-
-echo Installation de modeles vocaux francais...
-pip install espeak-ng
+echo Configuration de la voix francaise Windows...
+echo.
+echo ATTENTION: TTS (Tortoise) non compatible avec Python 3.13
+echo Utilisation de Windows TTS avec voix francaise integree
+echo.
 
 echo Creation du dossier William...
 if not exist "voices\william" mkdir voices\william

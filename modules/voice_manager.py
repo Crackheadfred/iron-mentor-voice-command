@@ -50,19 +50,29 @@ class VoiceManager:
         """Configuration de la voix Windows"""
         voices = self.windows_tts.getProperty('voices')
         
-        # Rechercher une voix masculine française
-        male_french_voice = None
+        # Rechercher une voix française (priorité aux voix masculines)
+        french_voice = None
         for voice in voices:
-            if 'french' in voice.name.lower() or 'fr' in voice.id.lower():
-                if 'male' in voice.name.lower() or 'homme' in voice.name.lower():
-                    male_french_voice = voice.id
+            voice_name = voice.name.lower()
+            voice_id = voice.id.lower()
+            
+            # Vérifier si c'est une voix française
+            if any(keyword in voice_name or keyword in voice_id 
+                   for keyword in ['french', 'fr', 'français', 'francais']):
+                french_voice = voice.id
+                # Priorité aux voix masculines
+                if any(keyword in voice_name 
+                       for keyword in ['male', 'homme', 'man', 'david', 'guillaume']):
                     break
         
-        if male_french_voice:
-            self.windows_tts.setProperty('voice', male_french_voice)
+        if french_voice:
+            self.windows_tts.setProperty('voice', french_voice)
+            self.logger.info(f"Voix française configurée: {french_voice}")
+        else:
+            self.logger.warning("Aucune voix française trouvée, utilisation de la voix par défaut")
         
         # Configuration de la vitesse et du volume
-        self.windows_tts.setProperty('rate', 200)  # Vitesse de parole
+        self.windows_tts.setProperty('rate', 180)  # Vitesse de parole
         self.windows_tts.setProperty('volume', 0.9)  # Volume
     
     def setup_tortoise_tts(self):
