@@ -11,7 +11,6 @@ echo.
 if not exist "jarvis_env\Scripts\activate.bat" (
     echo ❌ ERREUR: Environnement virtuel non trouvé
     echo Exécutez d'abord INSTALL_AUTO.bat
-    pause
     exit /b 1
 )
 
