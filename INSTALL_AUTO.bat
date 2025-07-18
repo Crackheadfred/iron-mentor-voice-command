@@ -3,10 +3,10 @@ chcp 65001 >nul
 setlocal EnableDelayedExpansion
 
 echo ========================================
-echo Installation COMPLETE J.A.R.V.I.S.
+echo INSTALLATION COMPLETE J.A.R.V.I.S.
 echo ========================================
 echo.
-echo Installation automatique avec toutes les optimisations
+echo Installation, configuration et demarrage tout-en-un
 echo Ne fermez pas cette fenetre!
 echo.
 
@@ -19,6 +19,39 @@ if not exist "jarvis_main.py" (
     exit /b 1
 )
 
+:: Menu principal
+:menu
+cls
+echo ========================================
+echo      J.A.R.V.I.S. - MENU PRINCIPAL
+echo ========================================
+echo.
+echo 1. INSTALLATION COMPLETE (premiere fois)
+echo 2. DEMARRER J.A.R.V.I.S.
+echo 3. DIAGNOSTIC ET TESTS
+echo 4. MISE A JOUR
+echo 5. REPARATION
+echo 6. DESINSTALLATION
+echo 7. QUITTER
+echo.
+set /p choice="Votre choix (1-7): "
+
+if "%choice%"=="1" goto install
+if "%choice%"=="2" goto start
+if "%choice%"=="3" goto diagnostic
+if "%choice%"=="4" goto update
+if "%choice%"=="5" goto repair
+if "%choice%"=="6" goto uninstall
+if "%choice%"=="7" goto end
+goto menu
+
+:install
+cls
+echo ========================================
+echo INSTALLATION COMPLETE
+echo ========================================
+echo.
+
 :: Nettoyer l'installation precedente
 if exist "jarvis_env" (
     echo [1/12] Suppression de l'ancienne installation...
@@ -30,7 +63,8 @@ echo [2/12] Verification de Python...
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ERREUR: Python non trouve - Installez Python 3.8+ depuis python.org
-    exit /b 1
+    pause
+    goto menu
 )
 
 :: Creer l'environnement virtuel
@@ -38,7 +72,8 @@ echo [3/12] Creation de l'environnement virtuel...
 python -m venv jarvis_env
 if errorlevel 1 (
     echo ERREUR: Impossible de creer l'environnement virtuel
-    exit /b 1
+    pause
+    goto menu
 )
 
 :: Activer l'environnement virtuel
@@ -58,7 +93,7 @@ echo [7/12] Installation des modules de base...
 pip install requests openai psutil pyttsx3 SpeechRecognition --quiet
 pip install pytesseract Pillow pyautogui opencv-python numpy --quiet
 
-:: Installation Tortoise TTS et optimisations
+:: Installation Tortoise TTS
 echo [8/12] Installation Tortoise TTS...
 pip install TTS tortoise-tts --quiet
 pip install accelerate transformers --quiet
@@ -78,7 +113,7 @@ if not exist "voices" mkdir voices
 if not exist "voices\william" mkdir voices\william
 if not exist "logs\telemetry" mkdir logs\telemetry
 
-:: Creer un script temporaire pour la configuration
+:: Configuration
 echo [11/12] Creation de la configuration...
 echo import json > temp_config.py
 echo config = { >> temp_config.py
@@ -111,17 +146,15 @@ echo     } >> temp_config.py
 echo } >> temp_config.py
 echo with open('config/config.json', 'w', encoding='utf-8') as f: >> temp_config.py
 echo     json.dump(config, f, indent=2, ensure_ascii=False) >> temp_config.py
-echo print('Configuration creee') >> temp_config.py
 
 python temp_config.py
 del temp_config.py
 
-:: Creer la voix William
+:: Configuration William
 echo [12/12] Configuration de la voix William...
 echo import json > temp_william.py
 echo from pathlib import Path >> temp_william.py
 echo william_dir = Path('voices/william') >> temp_william.py
-echo william_dir.mkdir(parents=True, exist_ok=True) >> temp_william.py
 echo config = { >> temp_william.py
 echo     'name': 'William', >> temp_william.py
 echo     'language': 'fr', >> temp_william.py
@@ -130,44 +163,201 @@ echo     'description': 'Voix masculine francaise pour J.A.R.V.I.S.' >> temp_wil
 echo } >> temp_william.py
 echo with open(william_dir / 'voice_config.json', 'w', encoding='utf-8') as f: >> temp_william.py
 echo     json.dump(config, f, indent=2, ensure_ascii=False) >> temp_william.py
-echo print('Voix William configuree') >> temp_william.py
 
 python temp_william.py
 del temp_william.py
 
-:: Test final
-echo Test des modules installes...
-python -c "
-modules = ['requests', 'openai', 'speech_recognition', 'pyttsx3', 'torch', 'TTS']
-success = 0
-for module in modules:
-    try:
-        __import__(module)
-        success += 1
-    except:
-        pass
-print('Modules installes: ' + str(success) + '/' + str(len(modules)))
-if success >= 5:
-    print('SUCCESS: Installation reussie!')
-else:
-    print('WARNING: Installation incomplete')
-"
-
 echo.
 echo ========================================
-echo Installation COMPLETE terminee!
+echo INSTALLATION TERMINEE!
 echo ========================================
-echo.
-echo Modules installes:
-echo - PyTorch avec CUDA
-echo - Tortoise TTS optimise
-echo - Support accents francais
-echo - Configuration optimisee
 echo.
 echo ETAPES SUIVANTES:
 echo 1. Installez Ollama: https://ollama.ai
 echo 2. Telechargez le modele: ollama pull mistral-small3.2:24b
-echo 3. Lancez: START_JARVIS.bat
 echo.
-echo Appuyez sur une touche pour continuer...
+pause
+goto menu
+
+:start
+cls
+echo ========================================
+echo DEMARRAGE J.A.R.V.I.S.
+echo ========================================
+echo.
+
+if not exist "jarvis_env\Scripts\activate.bat" (
+    echo ERREUR: J.A.R.V.I.S. non installe
+    echo Choisissez l'option 1 pour l'installer
+    pause
+    goto menu
+)
+
+echo Activation de l'environnement virtuel...
+call jarvis_env\Scripts\activate.bat
+
+echo Verification des services...
+
+:: Verifier Ollama
+curl -s http://localhost:11434/api/tags >nul 2>&1
+if errorlevel 1 (
+    echo ATTENTION: Ollama non detecte
+    echo Demarrez Ollama avant de continuer
+    echo.
+    set /p continue="Continuer quand meme? (o/n): "
+    if not "!continue!"=="o" goto menu
+)
+
+:: Verifier Tesseract
+where tesseract >nul 2>&1
+if errorlevel 1 (
+    echo ATTENTION: Tesseract OCR non detecte
+    echo L'analyse d'ecran sera desactivee
+    echo.
+)
+
+echo.
+echo Demarrage de J.A.R.V.I.S...
+echo.
+
+python jarvis_main.py
+goto menu
+
+:diagnostic
+cls
+echo ========================================
+echo DIAGNOSTIC J.A.R.V.I.S.
+echo ========================================
+echo.
+
+if not exist "jarvis_env\Scripts\activate.bat" (
+    echo ERREUR: J.A.R.V.I.S. non installe
+    pause
+    goto menu
+)
+
+call jarvis_env\Scripts\activate.bat
+
+echo Test des modules...
+python -c "
+modules = ['requests', 'openai', 'speech_recognition', 'pyttsx3', 'torch', 'TTS']
+for module in modules:
+    try:
+        __import__(module)
+        print(f'✓ {module}')
+    except:
+        print(f'✗ {module}')
+"
+
+echo.
+echo Test des modules J.A.R.V.I.S...
+python -c "
+try:
+    from modules.ollama_client import OllamaClient
+    from modules.voice_manager import VoiceManager  
+    from modules.speech_recognition_module import SpeechRecognitionModule
+    print('✓ Modules J.A.R.V.I.S. OK')
+except Exception as e:
+    print(f'✗ Erreur: {e}')
+"
+
+echo.
+echo Test Ollama...
+curl -s http://localhost:11434/api/tags && echo ✓ Ollama OK || echo ✗ Ollama KO
+
+echo.
+echo Test microphone...
+python -c "
+import speech_recognition as sr
+try:
+    r = sr.Recognizer()
+    m = sr.Microphone()
+    print('✓ Microphone detecte')
+except:
+    print('✗ Probleme microphone')
+"
+
+pause
+goto menu
+
+:update
+cls
+echo ========================================
+echo MISE A JOUR J.A.R.V.I.S.
+echo ========================================
+echo.
+
+if not exist "jarvis_env\Scripts\activate.bat" (
+    echo ERREUR: J.A.R.V.I.S. non installe
+    pause
+    goto menu
+)
+
+call jarvis_env\Scripts\activate.bat
+
+echo Mise a jour des modules...
+pip install --upgrade torch TTS tortoise-tts requests openai
+echo Mise a jour terminee!
+pause
+goto menu
+
+:repair
+cls
+echo ========================================
+echo REPARATION J.A.R.V.I.S.
+echo ========================================
+echo.
+
+if not exist "jarvis_env\Scripts\activate.bat" (
+    echo ERREUR: J.A.R.V.I.S. non installe
+    pause
+    goto menu
+)
+
+call jarvis_env\Scripts\activate.bat
+
+echo Reinstallation des modules problematiques...
+pip install --force-reinstall pyaudio pygame pyttsx3 SpeechRecognition
+
+echo Reconfiguration de la voix...
+python -c "
+import pyttsx3
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+for voice in voices:
+    if 'fr' in voice.id.lower() or 'french' in voice.name.lower():
+        engine.setProperty('voice', voice.id)
+        print(f'Voix francaise configuree: {voice.name}')
+        break
+engine.stop()
+"
+
+echo Reparation terminee!
+pause
+goto menu
+
+:uninstall
+cls
+echo ========================================
+echo DESINSTALLATION J.A.R.V.I.S.
+echo ========================================
+echo.
+echo ATTENTION: Ceci supprimera completement J.A.R.V.I.S.
+echo.
+set /p confirm="Confirmer la desinstallation? (oui/non): "
+if not "%confirm%"=="oui" goto menu
+
+echo Suppression en cours...
+if exist "jarvis_env" rmdir /s /q jarvis_env
+if exist "logs" rmdir /s /q logs
+if exist "memory" rmdir /s /q memory
+if exist "screenshots" rmdir /s /q screenshots
+if exist "voices" rmdir /s /q voices
+
+echo Desinstallation terminee!
+pause
+goto menu
+
+:end
+echo Au revoir!
 pause
