@@ -91,18 +91,20 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 :: Installation des modules de base
 echo [7/12] Installation des modules de base...
 pip install requests openai psutil pyttsx3 SpeechRecognition --quiet
-pip install pytesseract Pillow pyautogui opencv-python numpy --quiet
-pip install scipy pathlib2 python-dateutil --quiet
+pip install pytesseract Pillow pyautogui opencv-python numpy --quiet || echo OpenCV optionnel - peut echouer  
+pip install scipy pathlib2 python-dateutil --quiet || echo Modules optionnels - peuvent echouer
 
-:: Installation Tortoise TTS
+:: Installation Tortoise TTS (avec gestion d'erreur)
 echo [8/12] Installation Tortoise TTS...
-pip install TTS tortoise-tts --quiet
+pip install TTS --quiet
+pip install tortoise-tts --quiet || echo TTS optionnel - peut echouer
 pip install accelerate transformers --quiet
-pip install soundfile librosa pydub --quiet
+pip install soundfile librosa pydub --quiet || echo Audio optionnel - peut echouer
 
 :: Installation modules audio
 echo [9/12] Installation des modules audio...
-pip install pygame pyaudio --quiet
+pip install pygame --quiet || echo Pygame optionnel - peut echouer
+pip install pyaudio --quiet || echo PyAudio optionnel - peut echouer
 
 :: Note: sqlite3, queue, threading sont des modules integres Python
 
@@ -126,7 +128,7 @@ echo         'url': 'http://localhost:11434' >> temp_config.py
 echo     }, >> temp_config.py
 echo     'openai': { >> temp_config.py
 echo         'api_key': '', >> temp_config.py
-echo         'model': 'gpt-4o-mini' >> temp_config.py
+echo         'model': 'gpt-4.1-2025-04-14' >> temp_config.py
 echo     }, >> temp_config.py
 echo     'voice': { >> temp_config.py
 echo         'william_voice_path': 'voices/william/', >> temp_config.py
@@ -149,6 +151,7 @@ echo     } >> temp_config.py
 echo } >> temp_config.py
 echo with open('config/config.json', 'w', encoding='utf-8') as f: >> temp_config.py
 echo     json.dump(config, f, indent=2, ensure_ascii=False) >> temp_config.py
+echo print('Configuration creee avec succes') >> temp_config.py
 
 python temp_config.py
 del temp_config.py
@@ -166,6 +169,7 @@ echo     'description': 'Voix masculine francaise pour J.A.R.V.I.S.' >> temp_wil
 echo } >> temp_william.py
 echo with open(william_dir / 'voice_config.json', 'w', encoding='utf-8') as f: >> temp_william.py
 echo     json.dump(config, f, indent=2, ensure_ascii=False) >> temp_william.py
+echo print('Voix William configuree avec succes') >> temp_william.py
 
 python temp_william.py
 del temp_william.py
