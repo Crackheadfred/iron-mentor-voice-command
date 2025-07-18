@@ -34,6 +34,7 @@ echo 5. REPARATION
 echo 6. DESINSTALLATION
 echo 7. QUITTER
 echo.
+echo.
 set /p choice="Votre choix (1-7): "
 
 if "%choice%"=="1" goto install
@@ -43,6 +44,9 @@ if "%choice%"=="4" goto update
 if "%choice%"=="5" goto repair
 if "%choice%"=="6" goto uninstall
 if "%choice%"=="7" goto end
+
+echo Choix invalide. Veuillez entrer un chiffre entre 1 et 7.
+timeout /t 2 >nul
 goto menu
 
 :install
@@ -63,7 +67,9 @@ echo [2/12] Verification de Python...
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ERREUR: Python non trouve - Installez Python 3.8+ depuis python.org
-    pause
+    echo.
+    echo Appuyez sur une touche pour retourner au menu...
+    pause >nul
     goto menu
 )
 
@@ -72,7 +78,9 @@ echo [3/12] Creation de l'environnement virtuel...
 python -m venv jarvis_env
 if errorlevel 1 (
     echo ERREUR: Impossible de creer l'environnement virtuel
-    pause
+    echo.
+    echo Appuyez sur une touche pour retourner au menu...
+    pause >nul
     goto menu
 )
 
@@ -197,7 +205,8 @@ echo ETAPES SUIVANTES:
 echo 1. Installez Ollama: https://ollama.ai
 echo 2. Telechargez le modele: ollama pull mistral-small3.2:24b
 echo.
-pause
+echo Appuyez sur une touche pour retourner au menu...
+pause >nul
 goto menu
 
 :start
@@ -336,7 +345,9 @@ except:
     print('✗ Probleme microphone')
 "
 
-pause
+echo.
+echo Appuyez sur une touche pour retourner au menu...
+pause >nul
 goto menu
 
 :update
@@ -358,7 +369,9 @@ echo Mise a jour des modules...
 pip install --upgrade torch TTS tortoise-tts requests openai numpy opencv-python
 pip install --upgrade SpeechRecognition pyttsx3 pygame pyaudio
 echo Mise a jour terminee!
-pause
+echo.
+echo Appuyez sur une touche pour retourner au menu...
+pause >nul
 goto menu
 
 :repair
@@ -394,7 +407,9 @@ engine.stop()
 "
 
 echo Reparation terminee!
-pause
+echo.
+echo Appuyez sur une touche pour retourner au menu...
+pause >nul
 goto menu
 
 :uninstall
@@ -416,9 +431,13 @@ if exist "screenshots" rmdir /s /q screenshots
 if exist "voices" rmdir /s /q voices
 
 echo Desinstallation terminee!
-pause
+echo.
+echo Appuyez sur une touche pour retourner au menu...
+pause >nul
 goto menu
 
 :end
 echo Au revoir!
-pause
+echo Appuyez sur une touche pour fermer...
+pause >nul
+exit
