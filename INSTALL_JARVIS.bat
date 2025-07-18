@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 > nul
 echo ========================================
 echo Installation de J.A.R.V.I.S.
 echo ========================================
@@ -23,9 +24,11 @@ python -m venv jarvis_env
 echo Activation de l'environnement virtuel...
 call jarvis_env\Scripts\activate.bat
 
-:: Mettre à jour pip
+:: Mettre à jour pip et nettoyer le cache
 echo Mise à jour de pip...
 python -m pip install --upgrade pip
+echo Nettoyage du cache pip pour éviter les erreurs de permission...
+pip cache purge
 
 :: Installation des dépendances principales
 echo Installation des dépendances principales...
@@ -35,7 +38,7 @@ echo.
 
 :: Installation de NumPy avec version compatible
 echo Installation de NumPy (version compatible)...
-pip install "numpy>=1.21.0,<2.0.0"
+pip install --only-binary=all "numpy>=1.21.0,<2.0.0" || pip install numpy==1.24.3
 echo.
 
 :: Installation des dépendances audio avec gestion d'erreurs
