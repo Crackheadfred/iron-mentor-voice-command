@@ -11,8 +11,15 @@ import json
 import threading
 import time
 import logging
+import select
 from datetime import datetime
 from pathlib import Path
+
+# Pour Windows
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 
 # Modules internes
 from modules.voice_manager import VoiceManager
@@ -264,21 +271,21 @@ class JARVIS:
                 # Écoute vocale
                 command = self.listen()
                 if command:
+                    print(f"🎤 Vous avez dit: {command}")
                     self.process_command(command)
                 
-                # Écoute clavier (Windows compatible)
+                # Écoute clavier (compatible Windows/Linux)
                 try:
-                    if hasattr(sys, '_getframe'):  # Windows
-                        import msvcrt
-                        if msvcrt.kbhit():
-                            keyboard_input = input().strip()
-                            if keyboard_input:
-                                self.process_command(keyboard_input)
-                    else:  # Linux/Mac
-                        if sys.stdin in select.select([sys.stdin], [], [], 0.1)[0]:
-                            keyboard_input = input().strip()
-                            if keyboard_input:
-                                self.process_command(keyboard_input)
+                    if msvcrt and msvcrt.kbhit():  # Windows
+                        print("💬 Tapez votre commande: ", end="", flush=True)
+                        keyboard_input = input().strip()
+                        if keyboard_input.lower() == "exit":
+                            break
+                        if keyboard_input:
+                            print(f"⌨️ Commande tapée: {keyboard_input}")
+                            self.process_command(keyboard_input)
+                except KeyboardInterrupt:
+                    break
                 except:
                     pass  # Ignorer les erreurs de clavier
                 
@@ -294,16 +301,5 @@ class JARVIS:
             self.is_active = False
 
 if __name__ == "__main__":
-    try:
-        import select
-    except ImportError:
-        # Pour Windows
-        import msvcrt
-        
-        def check_keyboard():
-            if msvcrt.kbhit():
-                return msvcrt.getch().decode('utf-8')
-            return None
-    
     jarvis = JARVIS()
     jarvis.run()

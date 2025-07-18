@@ -61,8 +61,16 @@ class OllamaClient:
     def get_response(self, user_input, context=None):
         """Obtenir une réponse du modèle Mistral"""
         try:
+            print(f"🔄 Début traitement Ollama...")
+            
+            # Test de connexion rapide
+            if not self.test_connection():
+                print("❌ Connexion Ollama échouée")
+                return "Désolé monsieur, je ne parviens pas à accéder à mon processeur principal."
+            
             # Préparer le prompt avec contexte
             full_prompt = self.prepare_prompt(user_input, context)
+            print(f"📝 Prompt préparé: {full_prompt[:100]}...")
             
             # Préparer la requête
             payload = {
@@ -80,6 +88,8 @@ class OllamaClient:
                 }
             }
             
+            print(f"🚀 Envoi requête à Ollama...")
+            
             # Envoi de la requête
             response = requests.post(
                 f"{self.base_url}/api/chat",
@@ -87,9 +97,13 @@ class OllamaClient:
                 timeout=30
             )
             
+            print(f"📨 Réponse reçue - Status: {response.status_code}")
+            
             if response.status_code == 200:
                 result = response.json()
                 assistant_response = result["message"]["content"]
+                
+                print(f"✅ Réponse obtenue: {assistant_response[:100]}...")
                 
                 # Ajouter à l'historique
                 self.conversation_history.append({"role": "user", "content": user_input})
@@ -103,15 +117,27 @@ class OllamaClient:
                 return assistant_response
                 
             else:
-                self.logger.error(f"Erreur Ollama: {response.status_code} - {response.text}")
+                error_msg = f"Erreur HTTP {response.status_code}: {response.text}"
+                print(f"❌ {error_msg}")
+                self.logger.error(error_msg)
                 return "Désolé, je rencontre des difficultés techniques avec mon processeur principal."
                 
         except requests.exceptions.Timeout:
-            self.logger.error("Timeout lors de la requête Ollama")
+            error_msg = "Timeout lors de la requête Ollama"
+            print(f"⏰ {error_msg}")
+            self.logger.error(error_msg)
             return "Désolé monsieur, le temps de traitement a été dépassé."
             
+        except requests.exceptions.ConnectionError:
+            error_msg = "Impossible de se connecter à Ollama"
+            print(f"🔌 {error_msg}")
+            self.logger.error(error_msg)
+            return "Je ne parviens pas à me connecter à Ollama. Vérifiez qu'il est démarré."
+            
         except Exception as e:
-            self.logger.error(f"Erreur lors de la requête Ollama: {e}")
+            error_msg = f"Erreur lors de la requête Ollama: {e}"
+            print(f"💥 {error_msg}")
+            self.logger.error(error_msg)
             return "Je rencontre une erreur technique. Veuillez réessayer."
     
     def prepare_prompt(self, user_input, context=None):
