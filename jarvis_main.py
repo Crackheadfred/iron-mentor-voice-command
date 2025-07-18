@@ -235,13 +235,26 @@ class JARVIS:
     
     def run(self):
         """Boucle principale de J.A.R.V.I.S."""
+        print("🎤 Initialisation de J.A.R.V.I.S...")
         self.speak("J.A.R.V.I.S. en ligne. Tous les systèmes opérationnels.")
+        
+        # Test du microphone
+        print("🎤 Test du microphone...")
+        mic_test = self.speech_recognition.test_microphone()
+        if not mic_test[0]:
+            print(f"❌ Problème microphone: {mic_test[1]}")
+            self.speak("Attention: problème avec le microphone détecté.")
+        else:
+            print("✅ Microphone opérationnel")
         
         # Démarrer la surveillance en arrière-plan
         self.start_background_monitoring()
         
         # Activer l'analyse d'écran par défaut
         self.screen_monitor.start_monitoring()
+        
+        print("🎤 J.A.R.V.I.S. vous écoute... Parlez maintenant !")
+        print("💬 Vous pouvez aussi taper des commandes et appuyer sur Entrée")
         
         try:
             while self.is_active:

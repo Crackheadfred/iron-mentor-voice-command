@@ -82,19 +82,20 @@ class SpeechRecognitionModule:
         self.listening = True
         self.logger.info("Écoute continue démarrée")
     
-    def listen(self, timeout=5):
+    def listen(self, timeout=1):
         """Écouter une commande vocale (méthode synchrone)"""
         if not self.microphone:
             return None
         
         try:
             with self.microphone as source:
-                self.logger.debug("Écoute d'une commande...")
+                # Réduire le timeout pour être plus réactif
                 audio = self.recognizer.listen(source, timeout=timeout, phrase_time_limit=5)
             
             # Reconnaissance vocale
             text = self.recognizer.recognize_google(audio, language=self.language)
-            self.logger.info(f"Commande reconnue: {text}")
+            self.logger.info(f"✅ Commande reconnue: {text}")
+            print(f"🎤 Vous avez dit: {text}")
             return text
             
         except sr.WaitTimeoutError:
