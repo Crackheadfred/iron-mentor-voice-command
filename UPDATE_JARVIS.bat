@@ -140,4 +140,5 @@ echo 3. Redémarrez Ollama si nécessaire
 echo.
 echo Pour lancer J.A.R.V.I.S.: START_JARVIS.bat
 echo.
-pause
+echo Appuyez sur une touche pour fermer cette fenêtre...
+pause >nul

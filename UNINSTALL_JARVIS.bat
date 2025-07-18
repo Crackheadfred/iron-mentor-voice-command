@@ -79,4 +79,5 @@ echo - *.py, *.bat (scripts)
 echo.
 echo Pour réinstaller: exécutez INSTALL_JARVIS.bat
 echo.
-pause
+echo Appuyez sur une touche pour fermer cette fenêtre...
+pause >nul

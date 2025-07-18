@@ -84,4 +84,5 @@ echo    J.A.R.V.I.S. fermé
 echo ========================================
 echo Session terminée le %date% à %time% >> "%LOG_FILE%"
 echo.
-pause
+echo Appuyez sur une touche pour fermer cette fenêtre...
+pause >nul

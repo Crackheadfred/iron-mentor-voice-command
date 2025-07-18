@@ -27,4 +27,5 @@ echo ========================================
 echo Diagnostic terminé
 echo ========================================
 echo.
-pause
+echo Appuyez sur une touche pour fermer cette fenêtre...
+pause >nul
