@@ -12,7 +12,9 @@
     "tts_engine": "tortoise",
     "language": "fr",
     "fallback_to_windows": false,
-    "force_windows": false
+    "force_windows": false,
+    "default_voice": "William",
+    "force_tortoise": true
   },
   "screen": {
     "ocr_enabled": true,
