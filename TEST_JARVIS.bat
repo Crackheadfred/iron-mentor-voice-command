@@ -16,32 +16,31 @@ if not exist "jarvis_env\Scripts\activate.bat" (
 call jarvis_env\Scripts\activate.bat
 
 echo Test des modules principaux...
-python -c "
-try:
-    from modules.ollama_client import OllamaClient
-    from modules.voice_manager import VoiceManager
-    from modules.speech_recognition_module import SpeechRecognitionModule
-    import json
-    
-    # Charger la config
-    with open('config/config.json', 'r') as f:
-        config = json.load(f)
-    
-    print('✅ Imports réussis')
-    
-    # Test Ollama
-    ollama = OllamaClient(config)
-    print('✅ Client Ollama initialisé')
-    
-    # Test simple
-    response = ollama.get_response('Dis bonjour en français')
-    print(f'✅ Test Ollama: {response[:50]}...')
-    
-except Exception as e:
-    print(f'❌ Erreur: {e}')
-    import traceback
-    traceback.print_exc()
-"
+
+:: Créer un script de test temporaire
+echo import sys > test_temp.py
+echo import json >> test_temp.py
+echo try: >> test_temp.py
+echo     from modules.ollama_client import OllamaClient >> test_temp.py
+echo     from modules.voice_manager import VoiceManager >> test_temp.py
+echo     from modules.speech_recognition_module import SpeechRecognitionModule >> test_temp.py
+echo     with open('config/config.json', 'r') as f: >> test_temp.py
+echo         config = json.load(f) >> test_temp.py
+echo     print('✅ Imports réussis') >> test_temp.py
+echo     ollama = OllamaClient(config) >> test_temp.py
+echo     print('✅ Client Ollama initialisé') >> test_temp.py
+echo     response = ollama.get_response('Dis bonjour en français') >> test_temp.py
+echo     print(f'✅ Test Ollama: {response[:50]}...') >> test_temp.py
+echo except Exception as e: >> test_temp.py
+echo     print(f'❌ Erreur: {e}') >> test_temp.py
+echo     import traceback >> test_temp.py
+echo     traceback.print_exc() >> test_temp.py
+
+:: Exécuter le test
+python test_temp.py
+
+:: Nettoyer
+del test_temp.py 2>nul
 
 echo.
 echo ========================================
