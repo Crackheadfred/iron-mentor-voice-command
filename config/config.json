@@ -1,7 +1,9 @@
 {
   "ollama": {
-    "model": "mistral-small3.2:24b",
-    "url": "http://localhost:11434"
+    "model": "llama3.2:3b",
+    "url": "http://localhost:11434",
+    "enable_low_memory": true,
+    "context_length": 2048
   },
   "openai": {
     "api_key": "",
