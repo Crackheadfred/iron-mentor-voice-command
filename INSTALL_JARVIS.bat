@@ -29,31 +29,52 @@ python -m pip install --upgrade pip
 
 :: Installation des dépendances principales
 echo Installation des dépendances principales...
-pip install requests==2.31.0
-pip install openai==1.3.0
-pip install speech-recognition==3.10.0
-pip install pyttsx3==2.90
-pip install pygame==2.5.2
-pip install pyaudio==0.2.11
-pip install psutil==5.9.6
+pip install requests>=2.31.0
+pip install openai>=1.40.0
+echo.
 
-:: Installation des dépendances OCR et vision
+:: Installation de NumPy avec version compatible
+echo Installation de NumPy (version compatible)...
+pip install "numpy>=1.21.0,<2.0.0"
+echo.
+
+:: Installation des dépendances audio avec gestion d'erreurs
+echo Installation des dépendances audio...
+pip install SpeechRecognition>=3.10.0
+pip install pyttsx3>=2.90
+pip install psutil>=5.9.0
+echo.
+echo Tentative d'installation de PyAudio (peut échouer)...
+pip install pyaudio || echo ATTENTION: PyAudio a echoue - installez Microsoft Visual C++ Build Tools
+echo.
+echo Tentative d'installation de pygame...
+pip install pygame || echo ATTENTION: pygame a echoue - fonctionnalites audio limitees
+echo.
+
+:: Installation des dépendances OCR et vision avec gestion d'erreurs
 echo Installation des dépendances OCR...
-pip install opencv-python==4.8.1.78
-pip install pytesseract==0.3.10
-pip install Pillow==10.1.0
-pip install pyautogui==0.9.54
+pip install pytesseract>=0.3.10
+pip install pyautogui>=0.9.54
+echo.
+echo Tentative d'installation d'OpenCV...
+pip install opencv-python>=4.9.0 || echo ATTENTION: OpenCV a echoue - vision limitee
+echo.
+echo Tentative d'installation de Pillow...
+pip install Pillow>=10.0.0 || echo ATTENTION: Pillow a echoue - traitement d'images limite
+echo.
 
-:: Installation de Tortoise TTS
-echo Installation de Tortoise TTS...
-pip install tortoise-tts==2.8.0
-pip install torch==2.1.0+cu121 -f https://download.pytorch.org/whl/cu121/torch_stable.html
-pip install torchaudio==2.1.0+cu121 -f https://download.pytorch.org/whl/cu121/torch_stable.html
+:: Installation des dépendances IA avec versions compatibles
+echo Installation des dépendances IA...
+echo Tentative d'installation de PyTorch...
+pip install torch>=2.0.0 torchaudio>=2.0.0 || echo ATTENTION: PyTorch a echoue - IA limitee
+echo.
+echo Tentative d'installation de Tortoise TTS...
+pip install tortoise-tts>=3.0.0 || echo ATTENTION: Tortoise TTS a echoue - synthese vocale limitee
+echo.
 
-:: Installation des dépendances NumPy et SciPy
-echo Installation de NumPy et SciPy...
-pip install numpy==1.24.4
-pip install scipy==1.11.4
+:: Installation de SciPy avec gestion d'erreurs
+echo Installation de SciPy...
+pip install scipy>=1.9.0 || echo ATTENTION: SciPy a echoue - installez Microsoft Visual C++ Build Tools
 
 :: Créer les répertoires nécessaires
 echo Création des répertoires...
@@ -131,12 +152,14 @@ echo Installation terminée!
 echo ========================================
 echo.
 echo Prochaines étapes:
-echo 1. Installez Tesseract OCR (lien affiché ci-dessus)
-echo 2. Démarrez Ollama et installez le modèle:
+echo 1. Si certains modules ont échoué, installez Microsoft Visual C++ Build Tools:
+echo    https://visualstudio.microsoft.com/visual-cpp-build-tools/
+echo 2. Installez Tesseract OCR (lien affiché ci-dessus)
+echo 3. Démarrez Ollama et installez le modèle:
 echo    ollama serve
 echo    ollama pull mistral-small3.2:24b
-echo 3. (Optionnel) Ajoutez votre clé API OpenAI dans config/config.json
-echo 4. Lancez J.A.R.V.I.S. avec START_JARVIS.bat
+echo 4. (Optionnel) Ajoutez votre clé API OpenAI dans config/config.json
+echo 5. Lancez J.A.R.V.I.S. avec START_JARVIS.bat
 echo.
 echo Pour redémarrer l'installation: supprimez le dossier jarvis_env et relancez ce script
 echo.
