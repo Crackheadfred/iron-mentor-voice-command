@@ -22,11 +22,11 @@ class SpeechRecognitionModule:
         self.recognizer = sr.Recognizer()
         self.microphone = None
         
-        # Configuration
+        # Configuration optimisée pour le français avec accents
         self.language = "fr-FR"  # Français
-        self.energy_threshold = 4000
+        self.energy_threshold = 3000  # Plus sensible
         self.dynamic_energy_threshold = True
-        self.pause_threshold = 0.8
+        self.pause_threshold = 0.6  # Plus réactif
         
         # Queue pour les commandes audio
         self.audio_queue = queue.Queue()
@@ -64,8 +64,10 @@ class SpeechRecognitionModule:
         """Écoute continue en arrière-plan"""
         def callback(recognizer, audio):
             try:
-                # Reconnaissance vocale
+                # Reconnaissance vocale avec support des accents
                 text = recognizer.recognize_google(audio, language=self.language)
+                # Nettoyer et normaliser les accents
+                text = self.normalize_french_text(text)
                 self.audio_queue.put(text)
                 self.logger.info(f"Audio détecté: {text}")
             except sr.UnknownValueError:
@@ -92,8 +94,10 @@ class SpeechRecognitionModule:
                 # Réduire le timeout pour être plus réactif
                 audio = self.recognizer.listen(source, timeout=timeout, phrase_time_limit=5)
             
-            # Reconnaissance vocale
+            # Reconnaissance vocale avec support des accents
             text = self.recognizer.recognize_google(audio, language=self.language)
+            # Nettoyer et normaliser les accents français
+            text = self.normalize_french_text(text)
             self.logger.info(f"✅ Commande reconnue: {text}")
             return text
             
@@ -152,6 +156,7 @@ class SpeechRecognitionModule:
                 audio = self.recognizer.listen(source, timeout=5)
                 
             text = self.recognizer.recognize_google(audio, language=self.language)
+            text = self.normalize_french_text(text)
             return True, f"Test réussi. Texte reconnu: {text}"
             
         except Exception as e:
@@ -183,3 +188,39 @@ class SpeechRecognitionModule:
             "language": self.language,
             "pending_commands": self.audio_queue.qsize()
         }
+    
+    def normalize_french_text(self, text):
+        """Normaliser le texte français pour supporter les accents"""
+        if not text:
+            return text
+            
+        # Dictionnaire de corrections communes pour les accents français
+        corrections = {
+            "a": "à", "ou": "où", "la": "là", 
+            "deja": "déjà", "tres": "très", "apres": "après",
+            "pres": "près", "meme": "même", "tete": "tête",
+            "etre": "être", "fenetre": "fenêtre", "systeme": "système",
+            "probleme": "problème", "derniere": "dernière", "premiere": "première",
+            "numero": "numéro", "telephone": "téléphone", "analyse": "analyser",
+            "ecran": "écran", "reponse": "réponse", "arrete": "arrête",
+            "pret": "prêt", "execute": "exécute", "explique": "explique"
+        }
+        
+        # Appliquer les corrections par mots entiers
+        words = text.split()
+        corrected_words = []
+        
+        for word in words:
+            word_lower = word.lower().strip('.,!?;:')
+            if word_lower in corrections:
+                # Conserver la casse originale
+                if word.isupper():
+                    corrected_words.append(corrections[word_lower].upper())
+                elif word.istitle():
+                    corrected_words.append(corrections[word_lower].capitalize())
+                else:
+                    corrected_words.append(corrections[word_lower])
+            else:
+                corrected_words.append(word)
+        
+        return ' '.join(corrected_words)

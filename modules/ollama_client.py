@@ -10,6 +10,7 @@ import json
 import logging
 from datetime import datetime
 import time
+import torch
 
 class OllamaClient:
     def __init__(self, config):
@@ -84,7 +85,11 @@ class OllamaClient:
                 "options": {
                     "temperature": 0.7,
                     "top_p": 0.9,
-                    "max_tokens": 500
+                    "max_tokens": 300,  # Réduction pour vitesse
+                    "num_predict": 300,
+                    "repeat_penalty": 1.1,
+                    "num_ctx": 2048,    # Contexte plus petit = plus rapide
+                    "num_gpu": -1 if torch.cuda.is_available() else 0  # Utiliser GPU si disponible
                 }
             }
             

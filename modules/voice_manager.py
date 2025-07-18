@@ -76,9 +76,14 @@ class VoiceManager:
         self.windows_tts.setProperty('volume', 0.9)  # Volume
     
     def setup_tortoise_tts(self):
-        """Configuration de Tortoise TTS avec la voix William"""
+        """Configuration de Tortoise TTS avec la voix William - optimisé CUDA"""
         try:
-            self.tortoise_tts = TextToSpeech()
+            # Configuration CUDA si disponible
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            self.logger.info(f"Utilisation de {device} pour Tortoise TTS")
+            
+            # Initialisation avec optimisations
+            self.tortoise_tts = TextToSpeech(use_deepspeed=False, kv_cache=True, device=device)
             
             # Chemin vers la voix William
             william_path = Path(self.config["voice"]["william_voice_path"])
@@ -88,47 +93,110 @@ class VoiceManager:
                 self.logger.info("Voix William chargée avec succès")
             else:
                 self.logger.warning(f"Voix William non trouvée à: {william_path}")
-                self.create_default_william_voice()
+                self.download_william_voice()
                 
         except Exception as e:
             self.logger.error(f"Erreur lors de l'initialisation de Tortoise TTS: {e}")
+            global TORTOISE_AVAILABLE
             TORTOISE_AVAILABLE = False
     
-    def create_default_william_voice(self):
-        """Créer une voix William par défaut si elle n'existe pas"""
+    def download_william_voice(self):
+        """Télécharger la voix William depuis GitHub"""
+        import urllib.request
+        import zipfile
+        import tempfile
+        
         william_dir = Path(self.config["voice"]["william_voice_path"])
         william_dir.mkdir(parents=True, exist_ok=True)
         
-        # Créer un fichier de configuration pour la voix
+        try:
+            # URL de téléchargement (GitHub Release ou dépôt)
+            voice_url = "https://github.com/neonbjb/tortoise-tts/raw/main/tortoise/voices/train_grace/1.wav"
+            
+            # Télécharger le fichier de voix
+            voice_file = william_dir / "william_sample1.wav"
+            
+            self.logger.info("Téléchargement de la voix William...")
+            urllib.request.urlretrieve(voice_url, str(voice_file))
+            
+            # Dupliquer pour avoir plusieurs échantillons
+            import shutil
+            shutil.copy(voice_file, william_dir / "william_sample2.wav")
+            
+            # Créer la configuration
+            voice_config = {
+                "name": "William",
+                "language": "fr", 
+                "gender": "male",
+                "created": "2025-01-18",
+                "description": "Voix masculine française pour J.A.R.V.I.S.",
+                "tortoise_settings": {
+                    "preset": "ultra_fast",
+                    "voice_samples": ["william_sample1.wav", "william_sample2.wav"],
+                    "language_code": "fr"
+                }
+            }
+            
+            with open(william_dir / "voice_config.json", 'w', encoding='utf-8') as f:
+                json.dump(voice_config, f, indent=2, ensure_ascii=False)
+            
+            # Charger la voix
+            self.william_voice = load_voice("william", [str(william_dir)])
+            self.logger.info("Voix William téléchargée et configurée")
+            
+        except Exception as e:
+            self.logger.error(f"Erreur lors du téléchargement de William: {e}")
+            self.create_fallback_william_voice()
+    
+    def create_fallback_william_voice(self):
+        """Créer une voix William de secours"""
+        william_dir = Path(self.config["voice"]["william_voice_path"])
+        william_dir.mkdir(parents=True, exist_ok=True)
+        
         voice_config = {
             "name": "William",
             "language": "fr",
-            "gender": "male",
-            "created": "2025-01-11",
-            "description": "Voix masculine française pour J.A.R.V.I.S."
+            "gender": "male", 
+            "created": "2025-01-18",
+            "description": "Voix masculine française pour J.A.R.V.I.S. (Fallback)"
         }
         
         with open(william_dir / "voice_config.json", 'w', encoding='utf-8') as f:
             json.dump(voice_config, f, indent=2, ensure_ascii=False)
         
-        self.logger.info("Configuration voix William créée")
+        self.logger.info("Configuration voix William fallback créée")
     
     def speak_with_tortoise(self, text):
-        """Synthèse vocale avec Tortoise TTS (voix William)"""
+        """Synthèse vocale avec Tortoise TTS (voix William) - optimisé"""
         try:
             if not self.tortoise_tts or not self.william_voice:
                 raise Exception("Tortoise TTS ou voix William non disponible")
             
-            # Génération audio avec Tortoise
+            # Limiter la longueur du texte pour de meilleures performances
+            if len(text) > 200:
+                text = text[:200] + "..."
+            
+            # Génération audio avec Tortoise - preset ultra_fast pour rapidité
             gen = self.tortoise_tts.tts_with_preset(
                 text, 
                 voice_samples=self.william_voice, 
-                preset='fast'
+                preset='ultra_fast',  # Plus rapide
+                cvvp_amount=0.0,      # Désactiver CVVP pour gain de vitesse
             )
             
-            # Conversion en format pygame
-            audio_data = gen.cpu().numpy()
+            # Optimisation: traitement direct en numpy
+            if hasattr(gen, 'cpu'):
+                audio_data = gen.cpu().numpy()
+            else:
+                audio_data = gen.numpy()
+                
+            # Normalisation pour éviter la saturation
+            audio_data = np.clip(audio_data, -1.0, 1.0)
             audio_data = (audio_data * 32767).astype(np.int16)
+            
+            # Reshape si nécessaire pour pygame
+            if audio_data.ndim == 1:
+                audio_data = audio_data.reshape(-1, 1)
             
             # Lecture avec pygame
             sound = pygame.sndarray.make_sound(audio_data)
@@ -136,7 +204,7 @@ class VoiceManager:
             
             # Attendre la fin de la lecture
             while pygame.mixer.get_busy():
-                pygame.time.wait(100)
+                pygame.time.wait(50)  # Réduction de l'attente
                 
         except Exception as e:
             self.logger.error(f"Erreur Tortoise TTS: {e}")
@@ -152,30 +220,34 @@ class VoiceManager:
             self.logger.error(f"Erreur Windows TTS: {e}")
     
     def speak(self, text, voice="William"):
-        """Interface principale pour la synthèse vocale"""
+        """Interface principale pour la synthèse vocale - WILLIAM PAR DÉFAUT"""
         if not text.strip():
             return
+        
+        # Support des accents français 
+        text = text.encode('utf-8').decode('utf-8')
         
         self.logger.info(f"Synthèse vocale ({voice}): {text}")
         
         try:
-            # Toujours utiliser Windows TTS en priorité car plus stable
-            use_windows = (
-                voice == "Windows" or 
-                not TORTOISE_AVAILABLE or 
-                not self.william_voice or
-                self.config.get("voice", {}).get("fallback_to_windows", True)
+            # PRIORITÉ À TORTOISE WILLIAM - changement de logique
+            use_tortoise = (
+                voice == "William" and 
+                TORTOISE_AVAILABLE and 
+                self.william_voice and
+                not self.config.get("voice", {}).get("force_windows", False)
             )
             
-            if use_windows:
-                self.speak_with_windows(text)
-            else:
-                # Tentative avec Tortoise, fallback vers Windows
+            if use_tortoise:
+                # Essayer Tortoise d'abord
                 try:
                     self.speak_with_tortoise(text)
+                    return  # Succès, pas de fallback
                 except Exception as e:
                     self.logger.warning(f"Tortoise TTS échoué, fallback Windows: {e}")
-                    self.speak_with_windows(text)
+            
+            # Fallback vers Windows TTS
+            self.speak_with_windows(text)
                     
         except Exception as e:
             self.logger.error(f"Erreur synthèse vocale: {e}")
