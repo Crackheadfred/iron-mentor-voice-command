@@ -10,6 +10,7 @@ python --version >nul 2>&1
 if errorlevel 1 (
     echo ERREUR: Python n'est pas installé ou pas dans le PATH
     echo Veuillez installer Python 3.8+ depuis https://python.org
+    echo.
     pause
     exit /b 1
 )
@@ -19,10 +20,23 @@ echo Python détecté...
 :: Créer un environnement virtuel
 echo Création de l'environnement virtuel...
 python -m venv jarvis_env
+if errorlevel 1 (
+    echo ERREUR: Impossible de créer l'environnement virtuel
+    echo Vérifiez que vous avez les permissions d'écriture dans ce dossier
+    echo.
+    pause
+    exit /b 1
+)
 
 :: Activer l'environnement virtuel
 echo Activation de l'environnement virtuel...
 call jarvis_env\Scripts\activate.bat
+if errorlevel 1 (
+    echo ERREUR: Impossible d'activer l'environnement virtuel
+    echo.
+    pause
+    exit /b 1
+)
 
 :: Mettre à jour pip et nettoyer le cache
 echo Mise à jour de pip...
@@ -145,6 +159,13 @@ echo         print(f"✗ {module} - MANQUANT") >> test_installation.py
 
 echo Test des modules installés...
 python test_installation.py
+if errorlevel 1 (
+    echo.
+    echo ERREUR: Des problèmes ont été détectés lors du test des modules
+    echo Consultez les messages ci-dessus pour plus d'informations
+    echo.
+    pause
+)
 
 :: Nettoyer
 del test_installation.py
