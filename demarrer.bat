@@ -24,7 +24,23 @@ if not exist "jarvis_env\Scripts\activate.bat" (
 echo Activation environnement virtuel...
 call jarvis_env\Scripts\activate.bat
 
-echo Demarrage JARVIS...
+echo Verification de l'installation...
+python verify_jarvis.py
+if !ERRORLEVEL! NEQ 0 (
+    echo.
+    echo ========================================
+    echo ERREURS DETECTEES DANS L'INSTALLATION
+    echo ========================================
+    echo Corrigez les erreurs avant de continuer
+    echo Utilisez INSTALL_AUTO.bat pour reinstaller
+    pause
+    exit
+)
+
+echo.
+echo ========================================
+echo DEMARRAGE JARVIS...
+echo ========================================
 echo.
 python jarvis_main.py
 
