@@ -95,17 +95,24 @@ class SpeechRecognitionModule:
             # Reconnaissance vocale
             text = self.recognizer.recognize_google(audio, language=self.language)
             self.logger.info(f"✅ Commande reconnue: {text}")
-            print(f"🎤 Vous avez dit: {text}")
             return text
             
         except sr.WaitTimeoutError:
-            # Timeout - normal
+            # Timeout - normal, ne pas log
             return None
         except sr.UnknownValueError:
-            # Pas de parole claire détectée
+            # Pas de parole claire détectée - normal
             return None
         except sr.RequestError as e:
-            self.logger.error(f"Erreur de reconnaissance vocale: {e}")
+            # Erreur de service - log uniquement si pas d'internet
+            if "connection" in str(e).lower():
+                self.logger.warning("Pas de connexion internet pour la reconnaissance vocale")
+            else:
+                self.logger.error(f"Erreur de reconnaissance vocale: {e}")
+            return None
+        except OSError as e:
+            # Erreur microphone
+            self.logger.error(f"Erreur microphone: {e}")
             return None
         except Exception as e:
             self.logger.error(f"Erreur inattendue lors de l'écoute: {e}")

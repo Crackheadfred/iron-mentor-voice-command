@@ -5,12 +5,13 @@
   },
   "openai": {
     "api_key": "",
-    "model": "gpt-4"
+    "model": "gpt-4o-mini"
   },
   "voice": {
     "william_voice_path": "voices/william/",
     "tts_engine": "windows",
-    "language": "fr"
+    "language": "fr",
+    "fallback_to_windows": true
   },
   "screen": {
     "ocr_enabled": true,

@@ -195,12 +195,26 @@ class JARVIS:
         try:
             print(f"🤖 Traitement avec Ollama: {command}")
             context = self.get_context()
+            
+            # Vérifier si Ollama est disponible avant d'essayer
+            if not self.ollama_client.test_connection():
+                print("❌ Ollama non connecté")
+                self.speak("Je ne parviens pas à accéder à mon processeur principal. Vérifiez qu'Ollama est démarré.")
+                return
+            
             response = self.ollama_client.get_response(command, context)
             print(f"🤖 Réponse Ollama: {response}")
-            self.speak(response)
-            self.memory_manager.add_interaction("jarvis", response)
+            
+            if response and response.strip():
+                self.speak(response)
+                self.memory_manager.add_interaction("jarvis", response)
+            else:
+                print("❌ Réponse vide d'Ollama")
+                self.speak("Je n'ai pas pu générer de réponse. Veuillez réessayer.")
+                
         except Exception as e:
-            self.logger.error(f"Erreur lors du traitement: {e}")
+            error_msg = f"Erreur lors du traitement: {e}"
+            self.logger.error(error_msg)
             print(f"❌ Erreur Ollama: {e}")
             self.speak("Désolé, j'ai rencontré une erreur lors du traitement de votre demande.")
     

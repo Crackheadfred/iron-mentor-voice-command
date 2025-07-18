@@ -159,17 +159,32 @@ class VoiceManager:
         self.logger.info(f"Synthèse vocale ({voice}): {text}")
         
         try:
-            if voice == "William" and TORTOISE_AVAILABLE:
-                self.speak_with_tortoise(text)
-            else:
+            # Toujours utiliser Windows TTS en priorité car plus stable
+            use_windows = (
+                voice == "Windows" or 
+                not TORTOISE_AVAILABLE or 
+                not self.william_voice or
+                self.config.get("voice", {}).get("fallback_to_windows", True)
+            )
+            
+            if use_windows:
                 self.speak_with_windows(text)
+            else:
+                # Tentative avec Tortoise, fallback vers Windows
+                try:
+                    self.speak_with_tortoise(text)
+                except Exception as e:
+                    self.logger.warning(f"Tortoise TTS échoué, fallback Windows: {e}")
+                    self.speak_with_windows(text)
+                    
         except Exception as e:
             self.logger.error(f"Erreur synthèse vocale: {e}")
-            # Dernière chance avec Windows TTS
+            # Dernière chance avec Windows TTS basique
             try:
                 self.speak_with_windows(text)
-            except:
-                self.logger.error("Impossible de synthétiser la voix")
+            except Exception as final_e:
+                self.logger.error(f"Impossible de synthétiser la voix: {final_e}")
+                print(f"🔊 [VOICE FAILED] {text}")
     
     def get_available_voices(self):
         """Obtenir la liste des voix disponibles"""

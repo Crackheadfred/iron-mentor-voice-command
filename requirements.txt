@@ -4,6 +4,8 @@
 # Core dependencies
 requests>=2.31.0
 openai>=1.40.0
+numpy>=1.21.0,<2.0.0
+psutil>=5.9.0
 
 # Speech and Audio
 SpeechRecognition>=3.10.0
@@ -20,15 +22,15 @@ pyautogui>=0.9.54
 # AI and Machine Learning
 torch>=2.0.0
 torchaudio>=2.0.0
-tortoise-tts>=3.0.0
 
 # Data processing
-numpy>=1.21.0,<2.0.0
 scipy>=1.9.0
 
-# System utilities
-psutil>=5.9.0
-
-# Optional dependencies for enhanced features
+# Optional dependencies (can fail without breaking core functionality)
+# tortoise-tts>=3.0.0  # Commented out - often fails to install
 # soundfile>=0.12.1
 # librosa>=0.10.1
+
+# Pathlib backport for older Python
+pathlib2>=2.3.7
+python-dateutil>=2.8.2
