@@ -92,6 +92,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 echo [7/12] Installation des modules de base...
 pip install requests openai psutil pyttsx3 SpeechRecognition --quiet
 pip install pytesseract Pillow pyautogui opencv-python numpy --quiet
+pip install scipy pathlib2 python-dateutil --quiet
 
 :: Installation Tortoise TTS
 echo [8/12] Installation Tortoise TTS...
@@ -102,6 +103,8 @@ pip install soundfile librosa pydub --quiet
 :: Installation modules audio
 echo [9/12] Installation des modules audio...
 pip install pygame pyaudio --quiet
+
+:: Note: sqlite3, queue, threading sont des modules integres Python
 
 :: Creer les dossiers
 echo [10/12] Creation des dossiers...
@@ -166,6 +169,20 @@ echo     json.dump(config, f, indent=2, ensure_ascii=False) >> temp_william.py
 
 python temp_william.py
 del temp_william.py
+
+:: Test final complet de l'installation
+echo Test final de l'installation...
+python verify_jarvis.py
+if errorlevel 1 (
+    echo.
+    echo ⚠️  ATTENTION: Des problemes ont ete detectes
+    echo Consultez les details ci-dessus
+    echo.
+) else (
+    echo.
+    echo 🎉 INSTALLATION VALIDEE!
+    echo.
+)
 
 echo.
 echo ========================================
@@ -240,25 +257,63 @@ call jarvis_env\Scripts\activate.bat
 
 echo Test des modules...
 python -c "
-modules = ['requests', 'openai', 'speech_recognition', 'pyttsx3', 'torch', 'TTS']
+modules = ['requests', 'openai', 'speech_recognition', 'pyttsx3', 'torch', 'TTS', 'cv2', 'numpy', 'pygame', 'PIL', 'psutil', 'json', 'logging', 'pathlib']
+success = 0
+failed = []
 for module in modules:
     try:
-        __import__(module)
+        if module == 'pathlib':
+            from pathlib import Path
+        elif module == 'cv2':
+            import cv2
+        elif module == 'PIL':
+            from PIL import Image
+        else:
+            __import__(module)
         print(f'✓ {module}')
-    except:
-        print(f'✗ {module}')
+        success += 1
+    except Exception as e:
+        print(f'✗ {module} - {str(e)[:50]}')
+        failed.append(module)
+print(f'\\nResultat: {success}/{len(modules)} modules OK')
+if failed:
+    print(f'Modules echoues: {failed}')
 "
 
 echo.
 echo Test des modules J.A.R.V.I.S...
 python -c "
+import sys
+sys.path.append('.')
 try:
     from modules.ollama_client import OllamaClient
-    from modules.voice_manager import VoiceManager  
-    from modules.speech_recognition_module import SpeechRecognitionModule
-    print('✓ Modules J.A.R.V.I.S. OK')
+    print('✓ OllamaClient OK')
 except Exception as e:
-    print(f'✗ Erreur: {e}')
+    print(f'✗ OllamaClient: {e}')
+
+try:
+    from modules.voice_manager import VoiceManager  
+    print('✓ VoiceManager OK')
+except Exception as e:
+    print(f'✗ VoiceManager: {e}')
+
+try:
+    from modules.speech_recognition_module import SpeechRecognitionModule
+    print('✓ SpeechRecognitionModule OK')
+except Exception as e:
+    print(f'✗ SpeechRecognitionModule: {e}')
+
+try:
+    from modules.screen_monitor import ScreenMonitor
+    print('✓ ScreenMonitor OK')
+except Exception as e:
+    print(f'✗ ScreenMonitor: {e}')
+
+try:
+    from modules.memory_manager import MemoryManager
+    print('✓ MemoryManager OK')
+except Exception as e:
+    print(f'✗ MemoryManager: {e}')
 "
 
 echo.
@@ -296,7 +351,8 @@ if not exist "jarvis_env\Scripts\activate.bat" (
 call jarvis_env\Scripts\activate.bat
 
 echo Mise a jour des modules...
-pip install --upgrade torch TTS tortoise-tts requests openai
+pip install --upgrade torch TTS tortoise-tts requests openai numpy opencv-python
+pip install --upgrade SpeechRecognition pyttsx3 pygame pyaudio
 echo Mise a jour terminee!
 pause
 goto menu
@@ -318,6 +374,7 @@ call jarvis_env\Scripts\activate.bat
 
 echo Reinstallation des modules problematiques...
 pip install --force-reinstall pyaudio pygame pyttsx3 SpeechRecognition
+pip install --force-reinstall opencv-python pytesseract Pillow numpy
 
 echo Reconfiguration de la voix...
 python -c "
