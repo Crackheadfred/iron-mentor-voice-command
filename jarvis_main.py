@@ -186,12 +186,15 @@ class JARVIS:
         
         # Commande générale - utiliser Ollama
         try:
+            print(f"🤖 Traitement avec Ollama: {command}")
             context = self.get_context()
             response = self.ollama_client.get_response(command, context)
+            print(f"🤖 Réponse Ollama: {response}")
             self.speak(response)
             self.memory_manager.add_interaction("jarvis", response)
         except Exception as e:
             self.logger.error(f"Erreur lors du traitement: {e}")
+            print(f"❌ Erreur Ollama: {e}")
             self.speak("Désolé, j'ai rencontré une erreur lors du traitement de votre demande.")
     
     def get_context(self):
